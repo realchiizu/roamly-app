@@ -23,19 +23,20 @@ const AddTripDialog = ({ open, onClose, onAdd }: AddTripDialogProps) => {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [searchingPhotos, setSearchingPhotos] = useState(false);
 
-const handleSearchPhotos = async () => {
+  const handleSearchPhotos = async () => {
   if (!destination.trim()) return;
   setSearchingPhotos(true);
   try {
+    // Note: We remove the manual 'headers' block. 
+    // The Supabase client handles this automatically IF the keys are set.
     const { data, error } = await supabase.functions.invoke("search-photos", {
       body: { query: destination.trim() },
-      // This is the part that fixes the 401 error
-      headers: {
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-      },
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Function error:", error);
+      return;
+    }
 
     if (data?.results) {
       setPhotos(data.results);
