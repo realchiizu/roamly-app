@@ -44,21 +44,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch nickname when user changes
-  useEffect(() => {
-    if (!user) {
-      setNickname("");
-      return;
-    }
-    supabase
+// Fetch nickname when user changes
+useEffect(() => {
+  if (!user) {
+    setNickname("");
+    return;
+  }
+
+  const fetchProfile = async () => {
+    const { data, error } = await supabase
       .from("profiles")
       .select("nickname")
-      .eq("id", user.id)
-      .single()
-      .then(({ data }) => {
-        if (data?.nickname) setNickname(data.nickname);
-      });
-  }, [user]);
+      // Match the user's Auth ID with the 'user_id' column in your profiles table
+      .eq("user_id", user.id) 
+      .maybeSingle(); // Use maybeSingle to avoid errors if the profile isn't created yet
+
+    if (data?.nickname) {
+      setNickname(data.nickname);
+    }
+  };
+
+  fetchProfile();
+}, [user]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
