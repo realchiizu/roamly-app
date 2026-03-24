@@ -29,6 +29,9 @@ const AddTripDialog = ({ open, onClose, onAdd }: AddTripDialogProps) => {
     try {
       const { data, error } = await supabase.functions.invoke("search-photos", {
         body: { query: destination.trim() },
+        headers: {
+    'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+  }
       });
       if (data?.results) {
         setPhotos(data.results);
