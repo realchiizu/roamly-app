@@ -1,0 +1,7 @@
+project_id = "hqxwlhcgybhsutuhrtpu"
+
+[functions.search-photos]
+verify_jwt = false
+
+[functions.suggest-itinerary]
+verify_jwt = false

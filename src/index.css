@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Light mode — Cloud Traveller palette */
+  :root {
+    --background: 210 40% 97%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 20% 93%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 20% 93%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 199 89% 48%;
+
+    --radius: 1rem;
+
+    --glass-surface: 0 0% 100% / 0.7;
+    --glass-border: 214 32% 91%;
+    --glass-highlight: 0 0% 100% / 0.9;
+
+    --sidebar-background: 210 40% 96%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 93%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 199 89% 48%;
+  }
+
+  /* Dark mode */
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 14%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 14%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 0 0% 100% / 0.1;
+    --input: 0 0% 100% / 0.1;
+    --ring: 199 89% 48%;
+
+    --glass-surface: 0 0% 100% / 0.1;
+    --glass-border: 0 0% 100% / 0.1;
+    --glass-highlight: 0 0% 100% / 0.1;
+
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 0 0% 100% / 0.1;
+    --sidebar-ring: 199 89% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    /* Standardized to Inter for everything */
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Remove Montserrat to keep it clean and tech-focused */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-[hsl(var(--glass-surface))] backdrop-blur-xl border border-[hsl(var(--glass-border))];
+  }
+
+  .glass-card {
+    @apply glass rounded-2xl shadow-lg relative overflow-hidden;
+  }
+
+  .glass-card::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-[hsl(var(--glass-highlight))] to-transparent pointer-events-none opacity-30;
+  }
+
+  .text-display {
+    @apply text-[32px] font-bold tracking-tighter text-slate-900 dark:text-white;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .text-label {
+    @apply text-[13px] font-medium uppercase tracking-wider text-slate-600 dark:text-slate-400;
+  }
+
+
+  .text-body {
+    @apply text-base leading-relaxed text-muted-foreground;
+  }
+
+  .font-logo {
+    /* Same color logic as .text-display */
+    @apply font-medium uppercase tracking-wider text-slate-600 dark:text-slate-400;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 20px hsl(199 89% 48% / 0.35);
+  }
+
+  .glow-accent-sm {
+    box-shadow: 0 0 12px hsl(199 89% 48% / 0.4);
+  }
+
+  .glow-orange {
+    box-shadow: 0 0 16px hsl(38 92% 50% / 0.4);
+  }
+}
