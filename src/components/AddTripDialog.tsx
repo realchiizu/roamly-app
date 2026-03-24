@@ -24,24 +24,30 @@ const AddTripDialog = ({ open, onClose, onAdd }: AddTripDialogProps) => {
   const [searchingPhotos, setSearchingPhotos] = useState(false);
 
   const handleSearchPhotos = async () => {
-    if (!destination.trim()) return;
-    setSearchingPhotos(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("search-photos", {
-        body: { query: destination.trim() },
-        headers: {
-    'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-  }
-      });
-      if (data?.results) {
-        setPhotos(data.results);
-        setSelectedPhoto(null);
-      }
-    } catch {
-      // silently fail
+  if (!destination.trim()) return;
+  setSearchingPhotos(true);
+  try {
+    // Note: We remove the manual 'headers' block. 
+    // The Supabase client handles this automatically IF the keys are set.
+    const { data, error } = await supabase.functions.invoke("search-photos", {
+      body: { query: destination.trim() },
+    });
+
+    if (error) {
+      console.error("Function error:", error);
+      return;
     }
+
+    if (data?.results) {
+      setPhotos(data.results);
+      setSelectedPhoto(null);
+    }
+  } catch (err) {
+    console.error("Search failed:", err);
+  } finally {
     setSearchingPhotos(false);
-  };
+  }
+};
 
 
   const handleSubmit = async (e: React.FormEvent) => {
