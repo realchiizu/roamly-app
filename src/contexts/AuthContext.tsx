@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase
       .from("profiles")
       .select("nickname")
-      .eq("user_id", user.id)
+      .eq("id", user.id)
       .single()
       .then(({ data }) => {
         if (data?.nickname) setNickname(data.nickname);

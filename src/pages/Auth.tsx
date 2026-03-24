@@ -17,10 +17,16 @@ const Auth = () => {
 
     if (isSignUp) {
       const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: window.location.origin },
-      });
+      email,
+      password,
+      options: {
+        // This saves the nickname directly into the User's metadata
+        data: {
+          nickname: nickname.trim(),
+        },
+        emailRedirectTo: window.location.origin,
+      },
+    });
       if (error) {
         toast.error(error.message);
       } else {
