@@ -46,34 +46,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 // Fetch nickname when user changes
 useEffect(() => {
-  if (!user) {
-    setNickname("");
-    return;
-  }
+    // 1. Initial hydration: Check if there's an existing session in local storage
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+      } catch (error) {
+        console.error("Auth initialization failed:", error);
+      } finally {
+        setLoading(false); // Only set loading to false AFTER the check is done
+      }
+    };
 
-  const fetchProfile = async () => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("nickname")
-      // Match the user's Auth ID with the 'user_id' column in your profiles table
-      .eq("user_id", user.id) 
-      .maybeSingle(); // Use maybeSingle to avoid errors if the profile isn't created yet
+    initializeAuth();
 
-    if (data?.nickname) {
-      setNickname(data.nickname);
-    }
-  };
+    // 2. Listen for live changes (Login/Logout/Token Refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      console.log("Auth event:", event);
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      setLoading(false);
 
-  fetchProfile();
-}, [user]);
+      // If the token was refreshed, Supabase handles the headers automatically now 
+      // because we fixed the client.ts file earlier!
+    });
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, session, loading, nickname, setNickname, signOut }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+    return () => subscription.unsubscribe();
+  }, []);

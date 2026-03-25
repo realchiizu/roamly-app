@@ -25,11 +25,16 @@ const Index = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // FIX 3: Add the .eq('user_id', user.id) filter to prevent data leaks
   const fetchTrips = async () => {
+    if (!user?.id) return; // Guard: Don't fetch if no user is logged in
+
     const { data, error } = await supabase
       .from("trips")
       .select("*")
+      .eq("user_id", user.id) // ONLY fetch trips belonging to this user
       .order("start_date", { ascending: true });
+
     if (error) {
       toast.error("Failed to load trips");
     } else {
@@ -38,8 +43,16 @@ const Index = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchTrips(); }, []);
+  // Re-run fetch whenever the user object changes (e.g., after login)
+  useEffect(() => { 
+    if (user) {
+      fetchTrips(); 
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
+  // FIX 4: Secure the insertion with an explicit user_id stamp
   const handleAddTrip = async (
     destination: string,
     country: string,
@@ -47,6 +60,12 @@ const Index = () => {
     endDate: string,
     coverImageUrl?: string,
   ) => {
+    // Guard: Prevent ownerless rows
+    if (!user?.id) {
+      toast.error("You must be logged in to create a trip");
+      return;
+    }
+
     const { error } = await supabase.from("trips").insert({
       destination,
       country,
@@ -54,10 +73,11 @@ const Index = () => {
       start_date: startDate,
       end_date: endDate,
       cover_image_url: coverImageUrl || null,
-      user_id: user!.id,
+      user_id: user.id, // Explicitly pass the ID
     }).select().single();
 
     if (error) {
+      console.error("Insert error:", error);
       toast.error("Failed to create trip");
       return;
     }

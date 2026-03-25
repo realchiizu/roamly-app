@@ -1,20 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from './types';
 
-// We try to grab the key from both possible names just in case
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-  global: {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`
-    }
-  }
-});
+// Guard: Stop the app if keys are missing
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase URL or Anon Key. Check your .env file.');
+}
+
+// FIX: Do NOT add a "global: { headers: ... }" block here.
+// The Supabase client handles the Authorization header automatically 
+// when a user logs in.
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
