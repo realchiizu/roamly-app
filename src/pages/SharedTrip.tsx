@@ -85,6 +85,13 @@ const SharedTrip = () => {
       navigate(`/auth?returnTo=/shared/${shareId}`);
       return;
     }
+
+    // Safety check: Don't clone if the itinerary didn't load
+    if (itinerary.length === 0) {
+      toast.error("No itinerary items found to copy.");
+      return;
+    }
+
     setCloning(true);
     try {
       const { data: newTrip, error: tripErr } = await supabase
