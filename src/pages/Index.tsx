@@ -123,7 +123,7 @@ const Index = () => {
               <span className="text-4xl sm:text-4xl font-bold text-foreground tracking-tight whitespace-nowrap">
           Hi, {displayName}!
         </span>
-              <span className="text-2xl sm:text-3xl font-light text-slate-500 dark:text-muted-foreground tracking-tight whitespace-nowrap mt-1.5 opacity-90">
+              <span className="text-2xl sm:text-3xl font-light text-slate-600 dark:text-muted-foreground tracking-tight whitespace-nowrap mt-1.5 opacity-90">
   Where to next?
 </span>
             </h1>

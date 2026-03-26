@@ -221,7 +221,7 @@ const handleAdd = async () => {
 
           {/* Footer: Terminal & Gate */}
           <div className="mt-5 pt-3 border-t border-white/5 flex gap-5 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
-            <span>Term: <span className="text-foreground">{item.terminal || "1"}</span></span>
+            <span>Terminal: <span className="text-foreground">{item.terminal || "1"}</span></span>
             <span>Gate: <span className="text-foreground">{item.gate || "TBA"}</span></span>
           </div>
         </div>
@@ -368,7 +368,7 @@ const handleAdd = async () => {
                     <input 
                       value={form.destination || ""} 
                       onChange={(e) => setForm({ ...form, destination: e.target.value.toUpperCase() })} 
-                      placeholder="DAD" 
+                      placeholder="HKG" 
                       className={`${inputClass} uppercase`}
                       maxLength={3}
                     />
@@ -421,12 +421,7 @@ const handleAdd = async () => {
                   </div>
                 </div>
 
-                {/* Hidden Data Preview (Shows when API finds a route) */}
-                {form.origin && form.destination && (
-                  <p className="text-[10px] text-primary/80 font-bold uppercase tracking-widest ml-1">
-                    Route detected: {form.origin} › {form.destination}
-                  </p>
-                )}
+            
                 <div className="space-y-2">
                 <p className="text-[10px] text-muted-foreground italic">
                   For connecting flights, please add each flight leg separately.
