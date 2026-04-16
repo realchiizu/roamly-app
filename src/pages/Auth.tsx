@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Route, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -10,6 +11,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +44,23 @@ const Auth = () => {
       if (error) {
         toast.error(error.message);
       }
+    }
+    setLoading(false);
+  };
+
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    // Use the exact email/password you created for the guest account
+    const { error } = await supabase.auth.signInWithPassword({
+      email: "guest@roamly.app", 
+      password: "password123",
+    });
+
+    if (error) {
+      toast.error("Demo mode is currently offline. Please try again later.");
+    } else {
+      toast.success("Welcome! Exploring as a Guest.");
+      navigate("/"); // or wherever your dashboard lives
     }
     setLoading(false);
   };
@@ -109,6 +128,17 @@ const Auth = () => {
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {isSignUp ? "Sign Up" : "Sign In"}
             </motion.button>
+            {!isSignUp && (
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            type="button"
+            onClick={handleDemoLogin}
+            disabled={loading}
+            className="w-full bg-slate-200/50 dark:bg-white/[0.05] text-foreground py-3 rounded-full text-sm font-semibold border border-border/50 flex items-center justify-center gap-2 hover:bg-slate-300/50 transition-colors"
+          >
+            Explore as Guest (Demo)
+          </motion.button>
+        )}
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">

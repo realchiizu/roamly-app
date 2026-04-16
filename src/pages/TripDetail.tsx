@@ -50,6 +50,9 @@ const TripDetail = () => {
 
   const loadAll = async () => {
     if (!id) return;
+    
+    // Notice: We don't check for 'user' here anymore because 
+    // we want guests to see the shared data.
     const [tripRes, itinRes, packRes, photoRes, logRes] = await Promise.all([
       supabase.from("trips").select("*").eq("id", id).single(),
       supabase.from("itinerary_items").select("*").eq("trip_id", id).order("sort_order"),
@@ -57,6 +60,7 @@ const TripDetail = () => {
       supabase.from("trip_photos").select("*").eq("trip_id", id).order("created_at"),
       supabase.from("trip_logistics").select("*").eq("trip_id", id).order("sort_order"),
     ]);
+
     if (tripRes.data) setTrip(tripRes.data);
     setItinerary(itinRes.data || []);
     setPackingItems(packRes.data || []);
@@ -94,8 +98,10 @@ const TripDetail = () => {
   };
 
   const handleAddItineraryItem = async (dayLabel: string, time: string, title: string, description: string, icon: string) => {
-    const { data } = await supabase.from("itinerary_items").insert({ trip_id: id!, user_id: user!.id, day_label: dayLabel, time, title, description, icon, sort_order: itinerary.length }).select().single();
-    if (data) setItinerary((prev) => [...prev, data]);
+    if (!user) {
+      toast.error("You must be logged in to edit this trip!");
+      return;
+    }
   };
 
   const handleUpdateItineraryItem = async (itemId: string, updates: Partial<ItineraryItem>) => {
