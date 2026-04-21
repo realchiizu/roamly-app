@@ -102,6 +102,23 @@ const TripDetail = () => {
       toast.error("You must be logged in to edit this trip!");
       return;
     }
+
+    const { data } = await supabase
+      .from("itinerary_items")
+      .insert({
+        trip_id: id!,
+        user_id: user.id,
+        day_label: dayLabel,
+        time,
+        title,
+        description,
+        icon,
+        sort_order: itinerary.length,
+      })
+      .select()
+      .single();
+
+    if (data) setItinerary((prev) => [...prev, data]);
   };
 
   const handleUpdateItineraryItem = async (itemId: string, updates: Partial<ItineraryItem>) => {
