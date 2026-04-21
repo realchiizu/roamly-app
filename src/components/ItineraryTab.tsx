@@ -75,10 +75,21 @@ const ItineraryTab = ({ days, onAdd, onUpdate, onDelete, readOnly = false }: Iti
         />
         <EmojiPicker value={form.icon} onChange={(emoji) => setForm({ ...form, icon: emoji })} />
         <div className="flex gap-2 justify-end">
-          <button onClick={onCancel} className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground">
+          {/* FIX 1: Added type="button" and e.preventDefault() */}
+          <button 
+            type="button"
+            onClick={(e) => { e.preventDefault(); onCancel(); }} 
+            className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground"
+          >
             <X className="w-4 h-4" />
           </button>
-          <button onClick={onSubmit} className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-sm font-medium flex items-center gap-1">
+          
+          {/* FIX 2: Added type="button" and e.preventDefault() */}
+          <button 
+            type="button"
+            onClick={(e) => { e.preventDefault(); onSubmit(); }} 
+            className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full text-sm font-medium flex items-center gap-1"
+          >
             <Check className="w-4 h-4" /> Save
           </button>
         </div>
