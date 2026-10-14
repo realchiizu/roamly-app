@@ -98,6 +98,7 @@ A directory reference for navigating both frontend components and server-side fu
 | **Frontend Framework** | React (Vite), TypeScript | Component hierarchy and strong typing |
 | **Styling & UI** | Tailwind CSS, Framer Motion | Glassmorphism system, responsive layout, animations |
 | **Intelligence** | Google Gemini 1.5 Flash | Structured multi-day itinerary generation |
+| **External APIs** | Aviationstack & Unsplash APIs | Real-time flight tracking data and dynamic cover photo generation |
 | **Serverless Backend** | Supabase Edge Functions (Deno) | Secure API key proxying, Gemini schema validation |
 | **Database & Engine** | PostgreSQL, pg_cron | Relational tables, RLS authorization, scheduled cleanup |
 | **Auth** | Supabase GoTrue | Session persistence and managed guest access |
