@@ -192,19 +192,17 @@ SELECT cron.schedule('demo-cleanup', '0 0 * * *', $$ SELECT public.cleanup_demo_
 
 ## Known Edge Cases & Engineering Fixes
 
-* **Gemini 503 "High Demand" Flushes:**
-* *Root Cause:* Free and high-traffic AI tiers intermittently reject incoming generation calls with HTTP 503 UNAVAILABLE, crashing edge workers into generic HTTP 500s.
-* *Solution:* The edge function explicitly catches upstream status 503, returning a non-crashing response payload so the client UI triggers a polite retry notification.
+* **Gemini API 503 "High Demand" Handling**  
+  * *Root Cause:* High-traffic spikes on free/shared AI model tiers occasionally trigger `HTTP 503 Service Unavailable` responses, which would otherwise bubble up and crash the Deno Edge Function with unhandled 500 errors.  
+  * *Solution:* Implemented explicit try/catch blocks and status interceptors within the edge worker to safely catch 503 upstream errors, passing a graceful status payload back to the client so the UI can trigger a clean user-facing retry notification.
 
+* **Foreign Key Constraint Violations During Data Purge**  
+  * *Root Cause:* Direct deletion attempts on parent trip records failed silently due to database foreign key constraints blocking cascade removals from dependent child relations (`itinerary_items` and `packing_items`).  
+  * *Solution:* Refactored the SQL cleanup procedure to strictly enforce cascade execution order—wiping child records first, followed by dependent checklists, and finally executing the parent trip deletion.
 
-* **Foreign Key Blockers on Purge:**
-* *Root Cause:* Direct trip deletions failed silently due to dependent child rows in `itinerary_items`.
-* *Solution:* Restructured the cleanup procedure to execute in an exact cascade order (child tables first, parent trip last).
-
-
-* **Missing Itinerary Item Saves:**
-* *Root Cause:* Manual additions bypassed required fields (`trip_id`, `user_id`, or `day_label`) that were otherwise auto-populated by the AI batch function.
-* *Solution:* Standardized the `onAdd` callback interface in `TripDetail.tsx` to bind active `trip_id` and user credentials directly to every manual payload.
+* **Unbound Payload Failures on Manual Itinerary Saves**  
+  * *Root Cause:* Manual itinerary creations bypassed the automated batch schema pipeline, causing missing required fields (`trip_id`, `user_id`, or `day_label`) and throwing silent database rejection errors.  
+  * *Solution:* Standardized the `onAdd` callback interface inside `TripDetail.tsx` to automatically inject active session credentials and current `trip_id` state parameters into every manual form payload before database submission.
 
 
 
