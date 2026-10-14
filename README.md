@@ -38,6 +38,7 @@
 
 * **AI Itinerary Engine:** Prompts Gemini 1.5 Flash through server-side Deno Edge Functions, enforcing structured JSON schemas with custom activities, timing, and emoji markers.
 * **Logistics & Flight Tracker:** Integrates third-party flight queries alongside dynamic location galleries powered by Unsplash.
+* **Share Trip Feature:** Seamlessly generate shareable links for itineraries so friends and family can view or clone active travel plans instantly.
 * **Interactive Trip Planner:** Dynamic timeline visualization featuring full CRUD for itinerary events, custom checklist tracking, and image galleries.
 * **Relational Data & Security:** Backed by Supabase PostgreSQL with strict Row-Level Security (RLS) isolating authenticated users while granting controlled guest read/write access.
 
@@ -54,7 +55,12 @@ A directory reference for navigating both frontend components and server-side fu
 │       └── suggest-itinerary/             # Gemini 1.5 Flash Edge Function
 │           └── index.ts                   # System prompt, upstream fetch & error interceptor
 ├── src/
+│   ├── assets/                            # Static images and media assets
 │   ├── components/                        # UI and view components
+│   │   ├── ui/                            # Reusable UI primitives and UI elements
+│   │   ├── AddTripDialog.tsx              # Modal for creating new trips with photo selection
+│   │   ├── EmojiPicker.tsx                # Emoji selection component for activities
+│   │   ├── ErrorBoundary.tsx              # Fallback error handling component
 │   │   ├── GalleryTab.tsx                 # Unsplash photo curation & displays
 │   │   ├── GlassCard.tsx                  # Reusable translucent glassmorphic card container
 │   │   ├── ItineraryTab.tsx               # Timeline view & manual event creation form
@@ -66,6 +72,8 @@ A directory reference for navigating both frontend components and server-side fu
 │   │   └── TravelCard.tsx                 # Dashboard trip overview card
 │   ├── contexts/
 │   │   └── AuthContext.tsx                # User session, profile nicknames & demo credentials
+│   ├── data/
+│   │   └── trips.ts                       # Static data structures for trips
 │   ├── hooks/
 │   │   ├── use-mobile.tsx                 # Responsive viewport breakpoint detection
 │   │   └── use-toast.ts                   # UI notification dispatcher
@@ -84,10 +92,7 @@ A directory reference for navigating both frontend components and server-side fu
 │   ├── App.tsx                            # Root client routing configuration
 │   ├── main.tsx                           # Application mounting entry point
 │   └── index.css                          # Tailwind CSS base styles & CSS variables
-├── package.json                           # Workspace dependencies & build scripts
-├── tailwind.config.ts                     # Design system tokens & animations
-├── vercel.json                            # Routing fallbacks for SPA production deployments
-└── vite.config.ts                         # Client build & development server config
+
 ```
 ---
 
