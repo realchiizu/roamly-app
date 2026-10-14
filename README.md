@@ -1,115 +1,250 @@
+<div align="center">
+  <h1>🌍 Roamly</h1>
+  <p><b>Your intelligent travel operating system.</b></p>
+  <p>Frictionless, AI-generated multi-day itineraries paired with flight tracking, interactive checklists, and a self-cleaning guest sandbox for seamless portfolio demonstrations.</p>
 
-# 🌍 Roamly: Technical Documentation & Dev Log
+  <p>
+    <img src="https://img.shields.io/badge/Release-v1.0.0-blue?style=flat-square&logo=git&logoColor=white" alt="Release">
+    <img src="https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React">
+    <img src="https://img.shields.io/badge/Styling-TailwindCSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind">
+    <img src="https://img.shields.io/badge/Backend-Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase">
+    <img src="https://img.shields.io/badge/AI-Gemini%201.5-4285F4?style=flat-square&logo=google&logoColor=white" alt="Gemini">
+  </p>
+</div>
 
-## 1. Project Summary
-**Roamly** is a Full-Stack AI Travel OS designed to eliminate the friction of trip planning. It uses generative AI to build itineraries, live APIs for flight tracking, and a secure relational database to manage collaborative trip cloning.
+> **Important:** Designed as a production-grade full-stack showcase. Features an automated sandbox system to let visitors, reviewers, and recruiters freely test AI workflows without manual account creation or database pollution.
 
-### **The Tech Stack**
-* **Frontend:** React (Vite) + Tailwind CSS + Framer Motion (Animations).
-* **Intelligence:** Gemini 1.5 Flash (Google AI).
-* **Backend/Database:** PostgreSQL via **Supabase**.
-* **Auth:** Supabase Auth (with custom "Guest Demo" mode).
-* **APIs:** Aviationstack (Flights), Unsplash (Images).
-* **Deployment:** Vercel (Frontend) & Supabase Edge Functions (Backend).
-
----
-
-## 2. Core Architecture & Logic
-### **The "Brain" (Edge Functions)**
-Instead of calling Gemini directly from the browser (which is insecure), we use **Supabase Edge Functions**.
-* **`suggest-itinerary`**: This function takes a `destination` and `days`, prompts Gemini, and forces it to return a clean JSON array.
-* **Security:** API Keys are stored as `secrets` in Supabase, never exposed to the user.
-
-### **The Database Schema**
-* **`profiles`**: Stores user nicknames.
-* **`trips`**: The parent record. Contains a special `is_demo_master` boolean to protect sample data.
-* **`itinerary_items`**: Linked to `trips` via `trip_id`. These are the individual stops/activities.
+* **Frictionless by design:** Includes a one-click **"Explore as Guest"** session with zero signup forms required.
+* **Master Trip Shield:** Core demonstration trips (e.g., Tokyo, Paris) are protected by database-level policies and cannot be altered or removed by guest actions.
+* **Automated 24h Purge:** A native PostgreSQL background engine (`pg_cron`) wipes transient guest additions, generated plans, and checklists on a daily schedule.
+* **Robust Gemini Integration:** Built on Google's Gemini 1.5 Flash via Supabase Edge Functions with automatic upstream error handling for 503 high-demand conditions.
 
 ---
 
-## 3. The "Demo Mode" Infrastructure
-To make the portfolio friction-less, we implemented a custom Demo system.
-* **One-Click Login:** A button in `Auth.tsx` that uses hardcoded credentials for `guest@roamly.app`.
-* **Protection:** Row-Level Security (RLS) prevents guests from deleting "Master" trips (where `is_demo_master = true`).
-* **Auto-Cleanup:** A PostgreSQL `pg_cron` job runs every night at midnight.
-    * **Function:** `public.cleanup_demo_data()`
-    * **Logic:** Deletes all trips and itinerary items owned by the guest *unless* they are marked as master trips.
+## Contents
+
+1. [Architecture & Features](#-architecture--features)
+2. [Project File Map](#-project-file-map)
+3. [Tech Stack](#-tech-stack)
+4. [Getting Started](#-getting-started)
+5. [Demo Mode & Self-Cleaning Infrastructure](#-demo-mode--self-cleaning-infrastructure)
+6. [Known Edge Cases & Engineering Fixes](#-known-edge-cases--engineering-fixes)
+7. [Deployment & Runbook](#-deployment--runbook)
+8. [License](#-license)
 
 ---
 
-## 4. Significant Bugs & Fixes (The "Don't Forget" List)
+## Architecture & Features
 
-| Bug | Cause | Fix |
-| :--- | :--- | :--- |
-| **Edge Function 500 Error** | Gemini was hitting "High Demand" (503) and the function crashed. | Added a `try/catch` block to handle 503s and return a friendly message instead of a crash. |
-| **Auth 404/Invalid Key** | `v1beta` vs `v1` URL versioning in Google API. | Reverted to the stable `v1/models/gemini-pro` endpoint for consistent key validation. |
-| **Cleanup Script "0 Rows"** | Mismatched User UUID or NULL values in the new column. | Hardcoded the exact Guest UUID into the SQL function and set `is_demo_master` to `true` for all samples. |
-| **Cron Schema Error** | `pg_cron` extension wasn't enabled. | Ran `CREATE EXTENSION IF NOT EXISTS pg_cron;` in the Supabase SQL editor. |
+* **AI Itinerary Engine:** Prompts Gemini 1.5 Flash through server-side Deno Edge Functions, enforcing structured JSON schemas with custom activities, timing, and emoji markers.
+* **Logistics & Flight Tracker:** Integrates third-party flight queries alongside dynamic location galleries powered by Unsplash.
+* **Interactive Trip Planner:** Dynamic timeline visualization featuring full CRUD for itinerary events, custom checklist tracking, and image galleries.
+* **Relational Data & Security:** Backed by Supabase PostgreSQL with strict Row-Level Security (RLS) isolating authenticated users while granting controlled guest read/write access.
 
 ---
 
-## 5. How to Start a New Thread (AI Prompt)
-If you start a new conversation with an AI, paste this snippet first:
+## Project File Map
 
-> "I am working on **Roamly**, a React/Supabase travel app. The backend uses PostgreSQL with RLS. I have an Edge Function called `suggest-itinerary` using Gemini 1.5 Flash. I have a Demo account system where master trips are protected by an `is_demo_master` column. The guest UUID is `[PASTE_UUID_HERE]`. I am currently looking to [ADD TASK HERE]."
+A directory reference for navigating both frontend components and server-side functions:
+
+```text
+├── public/                                # Static web assets & icons
+├── supabase/
+│   └── functions/
+│       └── suggest-itinerary/             # Gemini 1.5 Flash Edge Function
+│           └── index.ts                   # System prompt, upstream fetch & error interceptor
+├── src/
+│   ├── components/                        # UI and view components
+│   │   ├── GalleryTab.tsx                 # Unsplash photo curation & displays
+│   │   ├── GlassCard.tsx                  # Reusable translucent glassmorphic card container
+│   │   ├── ItineraryTab.tsx               # Timeline view & manual event creation form
+│   │   ├── LoadingSkeleton.tsx            # Animated placeholder states during AI loads
+│   │   ├── LogisticsTab.tsx               # AI prompt controls & flight logistics tab
+│   │   ├── NavLink.tsx                    # Active link navigation helper
+│   │   ├── PackingListTab.tsx             # Interactive trip packing & luggage checklists
+│   │   ├── ThemeToggle.tsx                # Dark / light interface mode switch
+│   │   └── TravelCard.tsx                 # Dashboard trip overview card
+│   ├── contexts/
+│   │   └── AuthContext.tsx                # User session, profile nicknames & demo credentials
+│   ├── hooks/
+│   │   ├── use-mobile.tsx                 # Responsive viewport breakpoint detection
+│   │   └── use-toast.ts                   # UI notification dispatcher
+│   ├── integrations/
+│   │   └── supabase/
+│   │       ├── client.ts                  # Supabase client instantiation
+│   │       └── types.ts                   # Database schema TypeScript interfaces
+│   ├── lib/
+│   │   └── utils.ts                       # ClassName and utility styling helpers (clsx, twMerge)
+│   ├── pages/
+│   │   ├── Auth.tsx                       # Login, registration, and "Explore as Guest" action
+│   │   ├── Index.tsx                      # Primary trip library & dashboard overview
+│   │   ├── NotFound.tsx                   # Fallback 404 handler
+│   │   ├── SharedTrip.tsx                 # Public view for shared/cloned trips
+│   │   └── TripDetail.tsx                 # Tab container (Logistics, Itinerary, Packing, Gallery)
+│   ├── App.tsx                            # Root client routing configuration
+│   ├── main.tsx                           # Application mounting entry point
+│   └── index.css                          # Tailwind CSS base styles & CSS variables
+├── package.json                           # Workspace dependencies & build scripts
+├── tailwind.config.ts                     # Design system tokens & animations
+├── vercel.json                            # Routing fallbacks for SPA production deployments
+└── vite.config.ts                         # Client build & development server config
+```
+---
+
+## Tech Stack
+
+| Layer | Technology | Purpose |
+| --- | --- | --- |
+| **Frontend Framework** | React (Vite), TypeScript | Component hierarchy and strong typing |
+| **Styling & UI** | Tailwind CSS, Framer Motion | Glassmorphism system, responsive layout, animations |
+| **Intelligence** | Google Gemini 1.5 Flash | Structured multi-day itinerary generation |
+| **Serverless Backend** | Supabase Edge Functions (Deno) | Secure API key proxying, Gemini schema validation |
+| **Database & Engine** | PostgreSQL, pg_cron | Relational tables, RLS authorization, scheduled cleanup |
+| **Auth** | Supabase GoTrue | Session persistence and managed guest access |
+| **Deployment** | Vercel & Supabase Platform | Continuous integration, static hosting, and edge runtime |
 
 ---
 
-## 6. Current "To-Do" / Future Ideas
-* **Flight Alerts:** Connect Aviationstack to a background job to notify users if their flight status changes.
-* **Social Cloning:** Enhance the "Clone Trip" logic to deep-copy itinerary items more efficiently.
-* **Offline Support:** Add a Service Worker so users can view their itineraries at the airport without Wi-Fi.
+## Getting Started
 
-This is a great look at your **`src`** folder. It’s very clean and follows the modern React standard. If you come back to this in a few months, this map will be your "cheat sheet" for finding exactly where the features live.
+### Prerequisites
 
----
+* Node.js 18+ (or Bun/npm)
+* Supabase CLI (for modifying edge functions)
 
-# 🗺️ Roamly: Frontend Project Map
+### 1. Clone & Install
 
-### **1. The Pages (`/pages`)**
-These are the "Main Screens" of your app.
-* **`Auth.tsx`**: The entrance. Login, Signup, and your **One-Click Demo** button.
-* **`Index.tsx`**: The main dashboard where users see all their trip cards.
-* **`TripDetail.tsx`**: The "Command Center" for a single trip. It holds the tabs for Logistics, Itinerary, and Gallery.
-* **`SharedTrip.tsx`**: The public-facing page for when a user shares their trip with a friend.
-* **`NotFound.tsx`**: The 404 error page.
+```bash
+git clone [https://github.com/realchiizu/roamly.git](https://github.com/realchiizu/roamly.git)
+cd roamly
+npm install
 
----
+```
 
-### **2. The Components (`/components`)**
-These are the building blocks used inside the pages.
-* **`LogisticsTab.tsx`**: **CRITICAL FILE.** This handles the **AI Generation button**, the **Flight Search**, and the Destination input.
-* **`ItineraryTab.tsx`**: Displays the day-by-day plan generated by Gemini.
-* **`PackingListTab.tsx`**: Manages the checklist for the trip.
-* **`GalleryTab.tsx`**: Displays the trip photos (linked to Unsplash).
-* **`TravelCard.tsx`**: The individual "Trip Preview" cards seen on the main dashboard.
-* **`GlassCard.tsx`**: The UI wrapper that gives your app that sleek, semi-transparent look.
+### 2. Configure Environment Variables
 
----
+Create a `.env` file in the project root:
 
-### **3. The Connections (`/integrations` & `/contexts`)**
-This is the "under the hood" wiring.
-* **`integrations/supabase/client.ts`**: The bridge to your database. If the app can't save data, check here.
-* **`contexts/AuthContext.tsx`**: Remembers who is logged in. It provides the `user` object and `nickname` to the rest of the app.
+```env
+VITE_SUPABASE_URL=[https://your-project-id.supabase.co](https://your-project-id.supabase.co)
+VITE_SUPABASE_ANON_KEY=your-anon-key
+
+```
+
+### 3. Run Development Server
+
+```bash
+npm run dev
+
+```
 
 ---
 
-### **4. Hooks & Libs (`/hooks` & `/lib`)**
-Utility tools that keep the code organized.
-* **`hooks/use-toast.ts`**: Handles those little pop-up notifications (e.g., "Welcome Guest!").
-* **`lib/utils.ts`**: Usually contains CSS helper functions (like `cn`) for merging Tailwind classes.
+## Demo Mode & Self-Cleaning Infrastructure
+
+To allow guests to test all features without degrading the portfolio for subsequent visitors, Roamly separates static demo records from transient user data.
+
+### The Database Flag
+
+Every record in `public.trips` contains an `is_demo_master` boolean:
+
+* **`true`**: Protected sample trip (Tokyo, Paris). Exempt from purge operations.
+* **`false`**: Created during live visits or guest interactions.
+
+### Nightly Vacuum Automation (`pg_cron`)
+
+A scheduled PostgreSQL function runs at midnight every day to purge transient guest data:
+
+```sql
+CREATE OR REPLACE FUNCTION public.cleanup_demo_data()
+RETURNS void LANGUAGE plpgsql
+SECURITY DEFINER AS $$
+DECLARE
+    guest_id uuid := 'GUEST_USER_UUID';
+BEGIN
+    -- 1. Cascade delete all child items attached to non-master trips
+    DELETE FROM public.itinerary_items 
+    WHERE trip_id IN (
+        SELECT id FROM public.trips 
+        WHERE user_id = guest_id AND is_demo_master = false
+    );
+
+    -- 2. Delete packing records attached to non-master trips
+    DELETE FROM public.packing_items 
+    WHERE trip_id IN (
+        SELECT id FROM public.trips 
+        WHERE user_id = guest_id AND is_demo_master = false
+    );
+
+    -- 3. Delete non-master trips
+    DELETE FROM public.trips 
+    WHERE user_id = guest_id AND is_demo_master = false;
+END;
+$$;
+
+-- Registered on pg_cron schedule
+SELECT cron.schedule('demo-cleanup', '0 0 * * *', $$ SELECT public.cleanup_demo_data(); $$);
+
+```
 
 ---
 
-### **5. The "Root" Files**
-* **`App.tsx`**: The "Router." It tells the app: *"If the URL is /auth, show the Auth page."*
-* **`main.tsx`**: The very first file that runs. It "starts" the React engine.
-* **`index.css`**: Global styles (Tailwind setup).
+## Known Edge Cases & Engineering Fixes
+
+* **Gemini 503 "High Demand" Flushes:**
+* *Root Cause:* Free and high-traffic AI tiers intermittently reject incoming generation calls with HTTP 503 UNAVAILABLE, crashing edge workers into generic HTTP 500s.
+* *Solution:* The edge function explicitly catches upstream status 503, returning a non-crashing response payload so the client UI triggers a polite retry notification.
+
+
+* **Foreign Key Blockers on Purge:**
+* *Root Cause:* Direct trip deletions failed silently due to dependent child rows in `itinerary_items`.
+* *Solution:* Restructured the cleanup procedure to execute in an exact cascade order (child tables first, parent trip last).
+
+
+* **Missing Itinerary Item Saves:**
+* *Root Cause:* Manual additions bypassed required fields (`trip_id`, `user_id`, or `day_label`) that were otherwise auto-populated by the AI batch function.
+* *Solution:* Standardized the `onAdd` callback interface in `TripDetail.tsx` to bind active `trip_id` and user credentials directly to every manual payload.
+
+
 
 ---
 
-### **Quick Navigation Guide**
-* **"I want to change the Gemini Prompt."** → Go to `supabase/functions/suggest-itinerary/index.ts` (outside `src`).
-* **"I want to change the Flight API logic."** → Go to `src/components/LogisticsTab.tsx`.
-* **"I want to fix the Demo Login button."** → Go to `src/pages/Auth.tsx`.
-* **"I want to change the app's colors."** → Go to `tailwind.config.ts` (root) or `src/index.css`.
+## Deployment & Runbook
+
+### Deploying Frontend Updates
+
+All pushes directly to the `main` branch trigger automated builds and preview deployments via Vercel:
+
+```bash
+git push origin main
+
+```
+
+### Deploying Edge Functions
+
+When editing prompt parameters or error handlers in `supabase/functions/`:
+
+```bash
+supabase functions deploy suggest-itinerary
+
+```
+
+### Verifying Database Cron Jobs
+
+Check the health and recent run logs of the cleanup worker directly inside Supabase SQL Editor:
+
+```sql
+-- View scheduled status
+SELECT jobid, jobname, schedule, active FROM cron.job;
+
+-- View recent execution logs
+SELECT * FROM cron.job_run_details ORDER BY start_time DESC LIMIT 5;
+
+```
+
+---
+
+## License
+
+This project is currently maintained as a personal portfolio project.
+
